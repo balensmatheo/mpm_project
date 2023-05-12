@@ -1,4 +1,5 @@
 import {
+    Alert,
     Box,
     Button,
     Card,
@@ -11,6 +12,7 @@ import {AddTask, Delete} from "@mui/icons-material";
 import {useState} from "react";
 import { useEffect, useRef } from 'react';
 import vis from 'vis';
+import { saveAs } from 'file-saver';
 
 function MPM(props) {
     const graphRef = useRef(null);
@@ -88,7 +90,22 @@ function MPM(props) {
         };
     }, [props.tasks]);
 
-    return <div ref={graphRef} style={{ height: '400px' }} />;
+    function handleSaveDiagramClick() {
+        const canvas = graphRef.current.getElementsByTagName('canvas')[0];
+        canvas.toBlob(blob => {
+            saveAs(blob, 'my-diagram.png');
+        });
+    }
+
+    return (
+        <>
+            <div ref={graphRef} style={{ height: '200px' }} />
+            <Box m={2}>
+                <Button variant="contained" onClick={handleSaveDiagramClick}>Sauvegarder</Button>
+            </Box>
+
+        </>
+    );
 }
 
 export default function Main() {
@@ -117,7 +134,6 @@ export default function Main() {
                 <CardContent sx={{width: "100%", display: "flex", flexDirection: "row", justifyContent: "space-evenly"}}>
                     <TextField id="task-name" label="Nom de la tache" variant="outlined" value={taskName} onChange={(event) => setTaskName(event.target.value)} />
                     <TextField id="task-duration" type={"number"} label="Durée de la tache" variant="outlined" value={taskDuration} onChange={(event) => setTaskDuration(event.target.value)} />
-                    <TextField id="task-dependencies" label="Prédécesseurs" variant="outlined" value={taskDependencies} onChange={(event) => setTaskDependencies(event.target.value)} />
                 </CardContent>
                 <Divider/>
                 <CardActions sx={{display: "flex", flexDirection: "row", justifyContent: "flex-end"}}>
