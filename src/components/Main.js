@@ -1,4 +1,12 @@
-import {Box, Button, Card, CardActions, CardContent, Divider, IconButton, TextField, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    Card,
+    CardActions,
+    CardContent,
+    Divider,
+    TextField,
+} from "@mui/material";
 import {AddTask, Delete} from "@mui/icons-material";
 import {useState} from "react";
 import { useEffect, useRef } from 'react';
@@ -10,7 +18,7 @@ function MPM(props) {
     useEffect(() => {
         const nodes = props.tasks.map(task => ({
             id: task.id,
-            label: `${task.label} (${task.duration} j)`,
+            label: `${task.label} (${task.duration})`,
             duration: task.duration,
         }));
 
@@ -32,7 +40,7 @@ function MPM(props) {
 
         const options = {
             autoResize: false,
-            height: '100%',
+            height: '400px',
             width: '100%',
             physics: {
                 enabled: false,
@@ -56,6 +64,28 @@ function MPM(props) {
 
         const network = new vis.Network(graphRef.current, data, options);
         network.fit();
+
+        function handleDoubleClick(event) {
+            const nodeId = event.nodes[0];
+            if (nodeId === undefined) {
+                return;
+            }
+
+            const {x: xPos, y: yPos} = event.pointer.canvas;
+            network.storePositions();
+            const position = network.getPositions([nodeId])[nodeId];
+            network.addEdgeMode();
+            network.moveTo({
+                position: {x: position.x, y: position.y},
+                offset: {x: xPos - position.x, y: yPos - position.y}
+            });
+        }
+
+        network.on("doubleClick", handleDoubleClick);
+
+        return () => {
+            network.off("doubleClick", handleDoubleClick);
+        };
     }, [props.tasks]);
 
     return <div ref={graphRef} style={{ height: '400px' }} />;
@@ -91,11 +121,11 @@ export default function Main() {
                 </CardContent>
                 <Divider/>
                 <CardActions sx={{display: "flex", flexDirection: "row", justifyContent: "flex-end"}}>
-                    <Button variant="contained" startIcon={<AddTask/>} onClick={createCard}>Ajouter</Button>
+                        <Button disabled={taskName.length === 0 || taskDuration.length === 0} variant="contained" startIcon={<AddTask/>} onClick={createCard}>Ajouter</Button>
                 </CardActions>
             </Card>
             <Box sx={{display: "flex", justifyContent: "flex-end", gap: 2, m: 2}}>
-                <Button color={"error"} onClick={() => setTasks([])} startIcon={<Delete/>}>Delete</Button>
+                <Button disabled={tasks.length === 0} color={"error"} onClick={() => setTasks([])} startIcon={<Delete/>}>Delete</Button>
             </Box>
 
             <MPM tasks={tasks} />
